@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class Player_Move : MonoBehaviour
 {
-    private float attackTimer = 0f;
+    public float attackTimer = 0f;
     public float Speed = 8;
     public float JumpForce = 300;
+    public float HitPower_x = 3;
 
     Animator _aniCtrl;
     SpriteRenderer _spriteRenderer;
@@ -110,16 +111,38 @@ public class Player_Move : MonoBehaviour
             {
                 _aniCtrl.SetBool("IsGrounded", true);
                 _aniCtrl.SetBool("IsDown", false);
-                Debug.Log("Grounded");
             }
         }
         else
         {
             _aniCtrl.SetBool("IsGrounded", false);
-            Debug.Log("ungrounded");
         }
     }
 
-    //Attack Raycast Box
+    //player's hit detection
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Monster")
+        {
+            OnDamaged(collision.transform.position);
+        }
+    }
 
+    void OnDamaged(Vector2 hit_position)
+    {
+        gameObject.layer = 9; // player_damaged layer
+        _spriteRenderer.color = new Color(1, 1, 1, 0.4f); //흰색, 조금 투명
+
+        int dirc = transform.position.x - hit_position.x > 0 ? 1 : -1;
+        _rigidbody2D.AddForce(new Vector2(dirc, 1)*HitPower_x, ForceMode2D.Impulse);
+
+        Invoke("OffDamaged", 3);
+
+    }
+
+    void OffDamaged()
+    {
+        gameObject.layer = 8;
+        _spriteRenderer.color = new Color(1, 1, 1, 1);
+    }
 }
